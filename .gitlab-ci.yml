@@ -1,0 +1,40 @@
+image: maven:3.8.1-openjdk-8
+
+cache:
+  untracked: true
+  paths:
+    - "$CI_PROJECT_DIR/.m2/repository"
+
+stages:
+  - build
+  - deploy
+
+build:
+  stage: build
+  artifacts:
+    untracked: true
+  script: "mvn -Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository --batch-mode -U -DskipTests clean install -s mvn_settings.xml"
+
+deploy-snapshot:
+  stage: deploy
+  script:
+    - version=$(mvn org.apache.maven.plugins:maven-help-plugin:3.1.0:evaluate -Dexpression=project.version -q -DforceStdout)
+    - if [[ $version == *"-SNAPSHOT" ]]; then
+      if [ ! -f mvn_settings.xml ]; then
+      exit 1;
+      fi;
+      mvn --batch-mode --errors --show-version -DdeployAtEnd=true -DskipTests clean install deploy -s mvn_settings.xml;
+      fi
+  only:
+    - develop
+
+deploy:
+  stage: deploy
+  script:
+    - if [ ! -f mvn_settings.xml ]; then
+      exit 1;
+      fi
+    - mvn --batch-mode --errors --show-version -DdeployAtEnd=true -DskipTests clean install deploy -s mvn_settings.xml
+  only:
+    - master
+    - main

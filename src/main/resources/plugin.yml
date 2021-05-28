@@ -1,0 +1,42 @@
+name: ${project.name}
+version: ${project.version}
+authors: [Zodiia]
+depend: [zApi]
+main: me.zodiia.lottery.LotteryPlugin
+api-version: 1.16
+website: ${project.url}
+libraries:
+#  - "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${kotlin.version}"
+#  - "org.jetbrains.kotlin:kotlin-reflect:${kotlin.version}"
+  - "org.jetbrains.exposed:exposed-core:${exposed.version}"
+  - "org.jetbrains.exposed:exposed-jdbc:${exposed.version}"
+  - "com.zaxxer:HikariCP:4.0.3"
+  - "com.h2database:h2:1.4.200"
+  - "org.mariadb.jdbc:mariadb-java-client:2.7.3"
+commands:
+  lottery:
+    description: Main command for the lottery
+    aliases: [loterie, euromillions]
+    permission: lottery.base
+permissions:
+  lottery.*:
+    default: op
+    children:
+      lottery.buy: true
+      lottery.buy.others: true
+      lottery.info: true
+      lottery.last: true
+      lottery.reload: true
+      lottery.draw: true
+  lottery.base:
+    default: true
+  lottery.buy:
+    default: op
+  lottery.buy.others:
+    default: op
+  lottery.info:
+    default: true
+  lottery.last:
+    default: true
+  lottery.reload:
+    default: op

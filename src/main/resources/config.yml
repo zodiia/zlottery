@@ -1,0 +1,98 @@
+# Database configuration
+# Only compatible with MySQL or MariaDB
+database:
+  # Type of database
+  # Available types are:
+  #
+  #  Remote database servers (require connection configuration below):
+  #   - MYSQL
+  #   - MARIADB
+  #   - POSTGRESQL
+  #
+  #  File-based databases:
+  #   - H2 (recommended)
+  #   - SQLITE (not recommended)
+  storage-type: H2
+
+  # The database server hostname (IP address or DNS)
+  # The default port of your database engine will be used when not specified
+  # You can override it by specifying the host as "host:port"
+  host: 127.0.0.1
+
+  # Name of the database to connect to
+  # It must already exists before starting the server
+  database: minecraft
+
+  # Database credentials
+  username: root
+  password: passroot
+
+  # Size of the connection pool
+  # Don't change it if you don't know what you are doing
+  # More informations: https://github.com/brettwooldridge/HikariCP/wiki/About-Pool-Sizing
+  pool-size: 10
+
+  # How frequently each connection will send a packet to the database in order
+  #  to avoid it being dead
+  # Must be below your database setting for maximum lifetime
+  # Time is in milliseconds
+  keepalive-time: 30000 # 30 seconds
+
+  # Maximum time before a request performed by a connection will time out if
+  #  the server did not responded
+  # Time is in milliseconds
+  connection-timeout: 5000 # 5 seconds
+
+  # Maximum life time of a single connection before it is renewed
+  # It differs from the keep alive setting as the connection will be destroyed
+  #  and then recreated when it reached its maximum life time
+  # Time is in milliseconds
+  maximum-lifetime: 1200000 # 20 minutees
+
+  # Prefix of all tables created by the plugin
+  table-prefix: lottery_
+# Lotteries configuration
+lotteries:
+  # Lottery identifier
+  day:
+    # Scheduling of this lottery
+    schedule:
+      # Time of the day, in the format HH-MM.
+      # Additional time schedules can be added separated by a comma.
+      time: 18-00,21-00
+
+      # Day of the week, from 0 (Sunday) to 6 (Saturday).
+      # Additional day schedules can be added separated by a comma.
+      day: 0,1,2,3,4,5,6
+
+      # Reminders before the draw, in minutes before the next draw.
+      # Additional reminder schedules can be added separated by a comma.
+      reminders: 1,5,15,60
+
+    # Display name (in messages) of this lottery
+    display-name: Journalière
+
+    # Value of a single ticket
+    ticket-value: 20
+
+    # Maximum amount of tickets for a single player
+    max-tickets-per-player: 20
+
+    # Lottery tax, in percent
+    tax: 5
+
+    # Extra rewards, in the form of commands
+    extra-rewards:
+      - "mail send %player% You won!"
+
+  week:
+    schedule:
+      time: 20-00
+      day: 0
+      reminders: 1,5,15,60,300,1440
+    display-name: Hebdomadaire
+    ticket-value: 50
+    max-tickets-per-player: 20
+    tax: 5
+    extra-rewards:
+      - "mail send %player% You won!"

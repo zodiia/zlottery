@@ -1,0 +1,69 @@
+{
+  "errors": {
+    "missingPermissions": "&cErreur : Vous n'avez pas la permission d'effectuer ceci.",
+    "mustBePositiveNumber": "&cErreur : %value% n'est pas un nombre positif.",
+    "noSuchLottery": "&cErreur : Cette loterie n'existe pas.",
+    "notEnoughMoney": "&cErreur : Il vous manque &e%value% &cÉcus.",
+    "playerOffline": "&cErreur : %player% est hors-ligne.",
+    "syntax": "&cErreur : Syntaxe invalide. Utilisez '/%command%'.",
+    "tooMuchTickets": "&cErreur : Vous avez dépassé le nombre maximum de tickets autorisé pour cette loterie.",
+    "unknownError": "&cErreur : Une erreur inconnue est survenue. Si le problème persiste, merci de le signaler."
+  },
+  "help": {
+    "buy": {
+      "syntax": "buy <tickets> <loterie>",
+      "description": "Acheter des tickets de loterie pour vous-même"
+    },
+    "buyOthers": {
+      "syntax": "buy <tickets> <loterie> <joueur>",
+      "description": "Acheter des tickets de loterie pour quelqu'un d'autre"
+    },
+    "info": {
+      "syntax": "info <loterie>",
+      "description": "Obtenir des informations sur une loterie"
+    },
+    "last": {
+      "syntax": "last <loterie>",
+      "description": "Voir les derniers résultats d'une loterie"
+    }
+  },
+  "buy": {
+    "boughtSelf": "&aVous avez acheté &e%amount% &aticket(s), pour une valeur de &e%value% &aÉcus.",
+    "boughtOther": "&eVous avez acheté &e%amount% &aticket(s) pour %receiver%, pour une valeur de &e%value% &aÉcus.",
+    "broadcastSelf": "&aLoterie %lottery% &8&l» &6%player% &7a acheté &e%amount% &7ticket(s).",
+    "broadcastOther": "&aLoterie %lottery% &8&l» &6%player% &7a acheté &e%amount% &7ticket(s) pour &6%receiver%&7.",
+    "syntax": "<tickets> <loterie> [joueur]"
+  },
+  "last": {
+    "header": "&7Résumé des derniers tirages de la loterie {{0}} :",
+    "drawLine": "&6%date% &7- &6%player% &7(%amount% Écus.)",
+    "syntax": "<loterie>"
+  },
+  "info": {
+    "syntax": "<loterie>",
+    "header": "&7--- &aLoterie %lottery% &7---",
+    "toBuyTickets": "&7Pour acheter un/des ticket(s) : &e/%command% buy <tickets> %lottery% [joueur]&7.",
+    "amountOfPlayers": "&7Nombre de joueurs ayant acheté des tickets : &e%amount%&7.",
+    "priceAndNumberOfTickets": "&7Le prix d'un ticket est de &e%price% &7Écus. Vous avez acheté &e%amount% &7ticket(s), sur un total de &e%maximum% &7maximum.",
+    "ticketsAndPrizePool": "&7Nombre de tickets achetés : &e%amount%&7, pour un total de &e%value% &7Écus",
+    "nextDraw": "&7Prochain tirage dans &e%time%&7."
+  },
+  "reminder": {
+    "reminder": "&aLoterie %lottery% &8&l» &7Le tirage est dans %time% !"
+  },
+  "draw": {
+    "winner": "&aLoterie %lottery% &8&l» &6%player% &7remporte la loterie, et gagne &e%value% &7Écus !",
+    "noParticipants": "&aLoterie %lottery% &8&l» &7Malheureusement, personne n'a participé à cette loterie :("
+  },
+  "reload": {
+    "done": "&aLa configuration a été rechargée avec succès."
+  },
+  "time": {
+    "minute": "minute",
+    "minutes": "minutes",
+    "hour": "heure",
+    "hours": "heures",
+    "day": "jour",
+    "days": "jours"
+  }
+}
