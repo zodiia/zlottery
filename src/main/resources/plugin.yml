@@ -8,11 +8,11 @@ website: ${project.url}
 libraries:
 #  - "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${kotlin.version}"
 #  - "org.jetbrains.kotlin:kotlin-reflect:${kotlin.version}"
-  - "org.jetbrains.exposed:exposed-core:${exposed.version}"
-  - "org.jetbrains.exposed:exposed-jdbc:${exposed.version}"
-  - "com.zaxxer:HikariCP:4.0.3"
-  - "com.h2database:h2:1.4.200"
-  - "org.mariadb.jdbc:mariadb-java-client:2.7.3"
+#  - "org.jetbrains.exposed:exposed-core:${exposed.version}"
+#  - "org.jetbrains.exposed:exposed-jdbc:${exposed.version}"
+#  - "com.zaxxer:HikariCP:4.0.3"
+#  - "com.h2database:h2:1.4.200"
+#  - "org.mariadb.jdbc:mariadb-java-client:2.7.3"
 commands:
   lottery:
     description: Main command for the lottery
