@@ -20,6 +20,103 @@ import java.time.ZoneId
 import java.util.UUID
 import kotlin.jvm.Throws
 
+private object Companion {
+    fun getTickets(context: Context, idx: Int): Long {
+        try {
+            return context.args[idx]!!.toLong()
+        } catch (th: Throwable) {
+            context.sender.sendMessage(language.get("errors.mustBePositiveNumber", mapOf("amount" to context.args[idx]!!)))
+            throw IllegalStateException()
+        }
+    }
+
+    fun getLottery(context: Context, idx: Int): Lottery {
+        val lottery = LotteryConfig.getLottery(context.args[idx]!!)
+
+        if (lottery == null) {
+            context.sender.sendMessage(language.get("errors.noSuchLottery", mapOf()))
+            throw IllegalStateException()
+        }
+        return lottery
+    }
+
+    fun getPlayer(context: Context, idx: Int): Player {
+        if (context.args[idx] == null) {
+            return context.player!!
+        }
+        val player = Bukkit.getPlayer(context.args[idx]!!)
+
+        if (player == null) {
+            context.sender.sendMessage(language.get("errors.playerOffline", mapOf("player" to context.args[idx]!!)))
+            throw IllegalStateException()
+        }
+        return player
+    }
+
+    @Throws(SQLException::class)
+    fun getPlayerTicketsCount(player: UUID, lottery: String): Long {
+        val lastDraw = DrawsRepository.findLast(lottery).find { true }
+        val tickets = TicketsRepository.findAllForAfter(player, lastDraw?.time ?: 0, lottery)
+        var count = 0L
+
+        tickets.forEach { count += it.amount }
+        return count
+    }
+
+    @Throws(SQLException::class)
+    fun buyTickets(sender: Player, player: Player, lottery: Lottery, tickets: Long) {
+        val entity = TicketEntity.new {
+            this.player = player.uniqueId
+            this.lotteryName = lottery.id
+            this.time = System.currentTimeMillis()
+            this.amount = tickets
+        }
+        val value = lottery.ticketValue * tickets
+        val messageMapping = mapOf(
+            "amount" to "$tickets",
+            "value" to "$value",
+            "player" to sender.name,
+            "receiver" to player.name,
+        )
+
+        Vault.economy?.withdrawPlayer(sender, value)
+        if (sender.name == player.name) {
+            sender.sendMessage(language.get("buy.boughtSelf", messageMapping))
+            Bukkit.broadcastMessage(language.get("buy.broadcastSelf", messageMapping))
+        } else {
+            sender.sendMessage(language.get("buy.boughtOther", messageMapping))
+            Bukkit.broadcastMessage(language.get("buy.broadcastOther", messageMapping))
+        }
+    }
+
+    fun getDifferentPlayersAmount(tickets: SizedIterable<TicketEntity>): Int = tickets
+        .distinctBy { it.player }
+        .size
+
+    fun boughtTicketsFor(player: UUID, tickets: SizedIterable<TicketEntity>): Long = tickets
+        .filter { it.player.toString() == player.toString() }
+        .map { it.amount }
+        .reduce { a, b -> a + b }
+
+    fun boughtTicketsTotal(tickets: SizedIterable<TicketEntity>): Long = tickets
+        .map { it.amount }
+        .reduce { a, b -> a + b }
+
+    fun dateToString(timeMillis: Long): String {
+        val time = Instant.ofEpochMilli(timeMillis).atZone(ZoneId.systemDefault()).toLocalDateTime()
+
+        return "${numberLeadingZero(time.dayOfMonth)}/" +
+            "${numberLeadingZero(time.monthValue)}/" +
+            "${time.year} " +
+            "${numberLeadingZero(time.hour)}:" +
+            numberLeadingZero(time.minute)
+    }
+
+    fun numberLeadingZero(value: Int): String =
+        if (value < 10) "0$value"
+        else "$value"
+}
+
 val help: HelpMenu by lazy {
     val help = HelpMenu("Loterie", "lottery")
 
@@ -30,17 +127,6 @@ val help: HelpMenu by lazy {
     }
     help.build()
     help
-}
-
-val lotteryCommand = command {
-    description = "Lottery base command"
-    aliases = listOf("loterie", "euromillions")
-
-    subcommand("help", helpCommand)
-    subcommand("buy", buyCommand)
-    subcommand("info", infoCommand)
-    subcommand("last", lastCommand)
-    subcommand("reload", reloadCommand)
 }
 
 val helpCommand = command {
@@ -178,99 +264,13 @@ val reloadCommand = command {
     }
 }
 
-private object Companion {
-    fun getTickets(context: Context, idx: Int): Long {
-        try {
-            return context.args[idx]!!.toLong()
-        } catch (th: Throwable) {
-            context.sender.sendMessage(language.get("errors.mustBePositiveNumber", mapOf("amount" to context.args[idx]!!)))
-            throw IllegalStateException()
-        }
-    }
+val lotteryCommand = command {
+    description = "Lottery base command"
+    aliases = listOf("loterie", "euromillions")
 
-    fun getLottery(context: Context, idx: Int): Lottery {
-        val lottery = LotteryConfig.getLottery(context.args[idx]!!)
-
-        if (lottery == null) {
-            context.sender.sendMessage(language.get("errors.noSuchLottery", mapOf()))
-            throw IllegalStateException()
-        }
-        return lottery
-    }
-
-    fun getPlayer(context: Context, idx: Int): Player {
-        if (context.args[idx] == null) {
-            return context.player!!
-        }
-        val player = Bukkit.getPlayer(context.args[idx]!!)
-
-        if (player == null) {
-            context.sender.sendMessage(language.get("errors.playerOffline", mapOf("player" to context.args[idx]!!)))
-            throw IllegalStateException()
-        }
-        return player
-    }
-
-    @Throws(SQLException::class)
-    fun getPlayerTicketsCount(player: UUID, lottery: String): Long {
-        val lastDraw = DrawsRepository.findLast(lottery).find { true }
-        val tickets = TicketsRepository.findAllForAfter(player, lastDraw?.time ?: 0, lottery)
-        var count = 0L
-
-        tickets.forEach { count += it.amount }
-        return count
-    }
-
-    @Throws(SQLException::class)
-    fun buyTickets(sender: Player, player: Player, lottery: Lottery, tickets: Long) {
-        val entity = TicketEntity.new {
-            this.player = player.uniqueId
-            this.lotteryName = lottery.id
-            this.time = System.currentTimeMillis()
-            this.amount = tickets
-        }
-        val value = lottery.ticketValue * tickets
-        val messageMapping = mapOf(
-            "amount" to "$tickets",
-            "value" to "$value",
-            "player" to sender.name,
-            "receiver" to player.name,
-        )
-
-        Vault.economy?.withdrawPlayer(sender, value)
-        if (sender.name == player.name) {
-            sender.sendMessage(language.get("buy.boughtSelf", messageMapping))
-            Bukkit.broadcastMessage(language.get("buy.broadcastSelf", messageMapping))
-        } else {
-            sender.sendMessage(language.get("buy.boughtOther", messageMapping))
-            Bukkit.broadcastMessage(language.get("buy.broadcastOther", messageMapping))
-        }
-    }
-
-    fun getDifferentPlayersAmount(tickets: SizedIterable<TicketEntity>): Int = tickets
-        .distinctBy { it.player }
-        .size
-
-    fun boughtTicketsFor(player: UUID, tickets: SizedIterable<TicketEntity>): Long = tickets
-        .filter { it.player.toString() == player.toString() }
-        .map { it.amount }
-        .reduce { a, b -> a + b }
-
-    fun boughtTicketsTotal(tickets: SizedIterable<TicketEntity>): Long = tickets
-        .map { it.amount }
-        .reduce { a, b -> a + b }
-
-    fun dateToString(timeMillis: Long): String {
-        val time = Instant.ofEpochMilli(timeMillis).atZone(ZoneId.systemDefault()).toLocalDateTime()
-
-        return "${numberLeadingZero(time.dayOfMonth)}/" +
-            "${numberLeadingZero(time.monthValue)}/" +
-            "${time.year} " +
-            "${numberLeadingZero(time.hour)}:" +
-            numberLeadingZero(time.minute)
-    }
-
-    fun numberLeadingZero(value: Int): String =
-        if (value < 10) "0$value"
-        else "$value"
+    subcommand("help", helpCommand)
+    subcommand("buy", buyCommand)
+    subcommand("info", infoCommand)
+    subcommand("last", lastCommand)
+    subcommand("reload", reloadCommand)
 }

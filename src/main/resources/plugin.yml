@@ -1,23 +1,24 @@
 name: ${project.name}
 version: ${project.version}
 authors: [Zodiia]
+softdepend: [Vault, PlaceholderAPI]
 depend: [zApi]
 main: me.zodiia.lottery.LotteryPlugin
-api-version: 1.16
+api-version: 1.17
 website: ${project.url}
-libraries:
-#  - "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${kotlin.version}"
-#  - "org.jetbrains.kotlin:kotlin-reflect:${kotlin.version}"
-#  - "org.jetbrains.exposed:exposed-core:${exposed.version}"
-#  - "org.jetbrains.exposed:exposed-jdbc:${exposed.version}"
-#  - "com.zaxxer:HikariCP:4.0.3"
+libraries: []
+#  - "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.5.10"
+#  - "org.jetbrains.kotlin:kotlin-reflect:1.5.10"
+#  - "org.jetbrains.kotlinx:kotlinx-serialization-json:1.2.1"
+#  - "com.charleskorn.kaml:kaml:0.33.0"
 #  - "com.h2database:h2:1.4.200"
+#  - "mysql:mysql-connector-java:8.0.24"
 #  - "org.mariadb.jdbc:mariadb-java-client:2.7.3"
-commands:
-  lottery:
-    description: Main command for the lottery
-    aliases: [loterie, euromillions]
-    permission: lottery.base
+#  - "org.postgresql:postgresql:42.2.20"
+#  - "org.jetbrains.exposed:exposed-core:0.31.1"
+#  - "org.jetbrains.exposed:exposed-jdbc:0.31.1"
+#  - "org.jetbrains.exposed:exposed-dao:0.31.1"
+#  - "com.zaxxer:HikariCP:4.0.3"
 permissions:
   lottery.*:
     default: op

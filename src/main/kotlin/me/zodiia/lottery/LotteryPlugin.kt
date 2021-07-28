@@ -1,8 +1,10 @@
 package me.zodiia.lottery
 
 import me.zodiia.api.command.Commands
+import me.zodiia.api.data.DataSourceProvider
 import me.zodiia.lottery.commands.lotteryCommand
-import me.zodiia.lottery.storage.datasource.DataSourceProvider
+import me.zodiia.lottery.commands.testCommand
+import me.zodiia.lottery.storage.LotteryDataSource
 import org.bukkit.plugin.Plugin
 import org.bukkit.plugin.PluginDescriptionFile
 import org.bukkit.plugin.java.JavaPlugin
@@ -36,14 +38,15 @@ class LotteryPlugin : JavaPlugin {
         }
 
         // Initialize the data source (avoid big lag at first request)
-        DataSourceProvider.getSource()
+        LotteryDataSource.getSource()
 
         // Setup /lottery command
         Commands.register("lottery", this, lotteryCommand)
+        Commands.register("test", this, testCommand)
     }
 
     override fun onDisable() {
-        DataSourceProvider.close()
+        LotteryDataSource.close()
     }
 
     @Throws(IOException::class)
