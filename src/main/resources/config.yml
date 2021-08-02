@@ -8,6 +8,7 @@ database:
   #   - MYSQL
   #   - MARIADB
   #   - POSTGRESQL
+  #   - SQLSERVER (unstable, for testing purposes only)
   #
   #  File-based databases:
   #   - H2 (recommended)

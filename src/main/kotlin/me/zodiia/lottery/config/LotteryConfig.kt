@@ -1,7 +1,8 @@
-package me.zodiia.lottery
+package me.zodiia.lottery.config
 
 import me.zodiia.api.i18n.I18nLanguage
 import me.zodiia.api.scheduler.Scheduler
+import me.zodiia.lottery.LotteryPlugin
 import me.zodiia.lottery.lotteries.Lottery
 import org.bukkit.configuration.ConfigurationSection
 import java.util.HashSet
@@ -26,7 +27,7 @@ object LotteryConfig {
 
     private fun reloadConfig() {
         config = YamlConfiguration.loadConfiguration(File(LotteryPlugin.plugin.dataFolder, "config.yml"))
-        language = I18nLanguage("default", File(LotteryPlugin.plugin.dataFolder, "lang.json"))
+        language = I18nLanguage("default", File(LotteryPlugin.plugin.dataFolder, "lang/fr.json"))
         databaseConfig = config.getConfigurationSection("database")!!
 
         // Load lotteries

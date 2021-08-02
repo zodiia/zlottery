@@ -3,7 +3,7 @@ package me.zodiia.lottery.lotteries
 import me.zodiia.api.scheduler.Scheduler
 import me.zodiia.api.threads.Threads
 import me.zodiia.api.util.Vault
-import me.zodiia.lottery.LotteryConfig
+import me.zodiia.lottery.config.LotteryConfig
 import me.zodiia.lottery.storage.entities.DrawEntity
 import me.zodiia.lottery.storage.entities.TicketEntity
 import me.zodiia.lottery.storage.repositories.DrawsRepository
@@ -86,7 +86,8 @@ class Lottery(val id: String, cfg: ConfigurationSection) {
     private fun remind(draw: LocalDateTime?, reminder: LocalDateTime?) {
         val offsetMinutes: Long = ChronoUnit.MINUTES.between(draw, reminder)
         val offsetString = prettyPrintMinutes(offsetMinutes)
-        Bukkit.broadcastMessage(LotteryConfig.language.get("reminder.reminder", mapOf(
+        Bukkit.broadcastMessage(
+            LotteryConfig.language.get("reminder.reminder", mapOf(
             "lottery" to displayName.toLowerCase(Locale.ROOT),
             "time" to offsetString,
         )))
@@ -151,7 +152,8 @@ class Lottery(val id: String, cfg: ConfigurationSection) {
     }
 
     private fun rewardWinner(currentDraw: DrawEntity, winnerPlayer: OfflinePlayer) {
-        Bukkit.broadcastMessage(LotteryConfig.language.get("draw.winner", mapOf(
+        Bukkit.broadcastMessage(
+            LotteryConfig.language.get("draw.winner", mapOf(
             "lottery" to displayName.toLowerCase(Locale.ROOT),
             "player" to (winnerPlayer.name ?: "undefined"),
             "value" to "${currentDraw.amount * ticketValue * tax}",

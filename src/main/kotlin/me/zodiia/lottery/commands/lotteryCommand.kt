@@ -5,8 +5,8 @@ import me.zodiia.api.command.*
 import me.zodiia.api.threads.Threads
 import me.zodiia.api.util.Vault
 import me.zodiia.api.util.tryFct
-import me.zodiia.lottery.LotteryConfig
-import me.zodiia.lottery.LotteryConfig.language
+import me.zodiia.lottery.config.LotteryConfig
+import me.zodiia.lottery.config.LotteryConfig.language
 import me.zodiia.lottery.lotteries.Lottery
 import me.zodiia.lottery.storage.entities.TicketEntity
 import me.zodiia.lottery.storage.repositories.DrawsRepository
