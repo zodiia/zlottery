@@ -1,0 +1,42 @@
+## Sample lottery configuration
+##
+
+# Whether to enable this lottery. Set to "true" if you want to enable it.
+# If set to false, it will not be loaded by the plugin, and therefore will not be available in-game.
+enabled: false
+
+# Scheduling of this lottery. It will define draws of this lottery that will take place during a week.
+schedule:
+  # Time of the day, in the format HH-MM.
+  # Additional time schedules can be added separated by a comma.
+  # This example will run the lottery at 18:00 (6pm) and 21:00 (9pm) on each day this lottery is set to run.
+  time: 18-00,21-00
+
+  # Day of the week, from 0 (Sunday) to 6 (Saturday).
+  # Additional day schedules can be added separated by a comma.
+  # This example will run the lottery on each day of the week, except 3 (Wednesday) and 5 (Friday)
+  day: 0,1,2,4,6
+
+  # Reminders before a draw, in minutes before the next draw.
+  # Additional reminder schedules can be added separated by a comma.
+  # This example will send a reminder in the chat 1 hour, 15 minutes, 5 minutes and 1 minute before each draw.
+  reminders: 1,5,15,60
+
+# Display name (in messages) of this lottery.
+# Be aware that this display name may be printed without the capital letter.
+display-name: Journalière
+
+# Value of a single ticket.
+ticket-value: 20
+
+# Maximum amount of tickets for a single player, in one draw.
+# This number will be reset on each draw.
+max-tickets-per-player: 20
+
+# Lottery tax, in percents.
+# For each ticket a player buys, this tax will be taken from the lottery pot.
+tax: 5
+
+# Extra rewards, in the form of commands.
+extra-rewards:
+  - "mail send %player% You won!"

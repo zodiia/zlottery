@@ -1,17 +1,17 @@
 package me.zodiia.lottery.lotteries
 
+import kotlinx.coroutines.reactor.flux
+import kotlinx.coroutines.runBlocking
+import me.zodiia.api.hooks.useI18n
 import me.zodiia.api.scheduler.Scheduler
 import me.zodiia.api.threads.Threads
 import me.zodiia.api.util.Vault
-import me.zodiia.lottery.config.LotteryConfig
 import me.zodiia.lottery.storage.entities.DrawEntity
 import me.zodiia.lottery.storage.entities.TicketEntity
 import me.zodiia.lottery.storage.repositories.DrawsRepository
 import me.zodiia.lottery.storage.repositories.TicketsRepository
 import org.bukkit.Bukkit
 import org.bukkit.OfflinePlayer
-import org.bukkit.configuration.ConfigurationSection
-import org.jetbrains.exposed.sql.SizedIterable
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
@@ -21,22 +21,20 @@ import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.atomic.AtomicReference
 import java.util.function.Consumer
 
-class Lottery(val id: String, cfg: ConfigurationSection) {
-    val schedule: LotterySchedule
-    val displayName: String
-    val ticketValue: Double
-    val maxTicketsPerPlayer: Long
-    val tax: Double
-    val commandRewards: List<String>
+data class Lottery(
+    val enabled: Boolean,
+    val schedule: LotterySchedule,
+    val displayName: String,
+    val ticketValue: Double,
+    val maxTicketsPerPlayer: Double,
+    val tax: Double,
+    val extraRewards: Array<String>,
+) {
+    lateinit var id: String
     var nextDraw: LocalDateTime? = null
 
-    init {
-        schedule = LotterySchedule(cfg.getConfigurationSection("schedule"))
-        displayName = cfg.getString("display-name", "undefined")!!
-        ticketValue = cfg.getDouble("ticket-value")
-        maxTicketsPerPlayer = cfg.getLong("max-tickets-per-player")
-        tax = 1 - cfg.getDouble("tax") / 100.0
-        commandRewards = cfg.getStringList("extra-rewards")
+    companion object {
+        val i18n by useI18n()
     }
 
     fun getNextDrawText(): String {
@@ -56,30 +54,32 @@ class Lottery(val id: String, cfg: ConfigurationSection) {
     }
 
     private fun draw() {
-        Threads.runAsync {
-            try {
-                val lastDraw: DrawEntity? = DrawsRepository.findLast(id).find { true }
-                val drawTickets = TicketsRepository.findAllAfter(lastDraw?.time ?: 0, id)
-
-                if (drawTickets.empty()) {
-                    Bukkit.broadcastMessage(LotteryConfig.language.get("draw.noParticipants", mapOf("lottery" to displayName.toLowerCase(Locale.ROOT))))
-                    return@runAsync
+        runBlocking {
+            DrawsRepository.findLast(id)
+                .next()
+                .flatMapMany {
+                    flux<TicketEntity> {
+                        TicketsRepository.findAllAfter(it.time, id)
+                    }
                 }
-                val winner = pickWinner(drawTickets)
-                val currentDraw = DrawEntity.new {
-                    this.winner = winner.player
-                    this.lotteryName = this@Lottery.id
-                    this.time = System.currentTimeMillis()
-                    this.amount = drawTickets.sumOf(TicketEntity::amount)
-                }
-                val winnerPlayer = Bukkit.getOfflinePlayer(winner.player)
+                .collectList()
+                .map {
+                    if (it.isEmpty()) {
+                        Bukkit.broadcastMessage(i18n.get("draw.noParticipants", mapOf("lottery" to displayName.lowercase(Locale.ROOT))))
+                        return@map
+                    }
+                    val winner = pickWinner(it)
+                    val currentDraw = DrawEntity.new {
+                        this.winner = winner.player
+                        this.lotteryName = this@Lottery.id
+                        this.time = System.currentTimeMillis()
+                        this.amount = it.sumOf(TicketEntity::amount)
+                    }
+                    val winnerPlayer = Bukkit.getOfflinePlayer(winner.player)
 
-                rewardWinner(currentDraw, winnerPlayer)
-                scheduleNextDraw()
-            } catch (err: Throwable) {
-                err.printStackTrace()
-                throw IllegalStateException("An exception occured while drawing the lottery.", err)
-            }
+                    rewardWinner(currentDraw, winnerPlayer)
+                    scheduleNextDraw()
+                }
         }
     }
 
@@ -87,8 +87,8 @@ class Lottery(val id: String, cfg: ConfigurationSection) {
         val offsetMinutes: Long = ChronoUnit.MINUTES.between(draw, reminder)
         val offsetString = prettyPrintMinutes(offsetMinutes)
         Bukkit.broadcastMessage(
-            LotteryConfig.language.get("reminder.reminder", mapOf(
-            "lottery" to displayName.toLowerCase(Locale.ROOT),
+            i18n.get("reminder.reminder", mapOf(
+            "lottery" to displayName.lowercase(Locale.ROOT),
             "time" to offsetString,
         )))
     }
@@ -103,9 +103,9 @@ class Lottery(val id: String, cfg: ConfigurationSection) {
         if (days > 0) {
             finalString += "$days "
             finalString += if (days > 1) {
-                LotteryConfig.language.get("time.days", mapOf())
+                i18n.get("time.days", mapOf())
             } else {
-                LotteryConfig.language.get("time.day", mapOf())
+                i18n.get("time.day", mapOf())
             }
             displayedUnits += 1
         }
@@ -115,9 +115,9 @@ class Lottery(val id: String, cfg: ConfigurationSection) {
             }
             finalString += "$hours "
             finalString += if (hours > 1) {
-                LotteryConfig.language.get("time.hours", mapOf())
+                i18n.get("time.hours", mapOf())
             } else {
-                LotteryConfig.language.get("time.hour", mapOf())
+                i18n.get("time.hour", mapOf())
             }
             displayedUnits += 1
             if (displayedUnits == 2) {
@@ -130,15 +130,15 @@ class Lottery(val id: String, cfg: ConfigurationSection) {
             }
             finalString += "$minutes "
             finalString += if (minutes > 1) {
-                LotteryConfig.language.get("time.minutes", mapOf())
+                i18n.get("time.minutes", mapOf())
             } else {
-                LotteryConfig.language.get("time.minute", mapOf())
+                i18n.get("time.minute", mapOf())
             }
         }
         return finalString
     }
 
-    private fun pickWinner(tickets: SizedIterable<TicketEntity>): TicketEntity {
+    private fun pickWinner(tickets: List<TicketEntity>): TicketEntity {
         val totalWeight = tickets.sumOf(TicketEntity::amount)
         val winningTicket = AtomicLong(ThreadLocalRandom.current().nextLong(totalWeight))
         val winner: AtomicReference<TicketEntity> = AtomicReference<TicketEntity>(null)
@@ -153,16 +153,44 @@ class Lottery(val id: String, cfg: ConfigurationSection) {
 
     private fun rewardWinner(currentDraw: DrawEntity, winnerPlayer: OfflinePlayer) {
         Bukkit.broadcastMessage(
-            LotteryConfig.language.get("draw.winner", mapOf(
-            "lottery" to displayName.toLowerCase(Locale.ROOT),
+            i18n.get("draw.winner", mapOf(
+            "lottery" to displayName.lowercase(Locale.ROOT),
             "player" to (winnerPlayer.name ?: "undefined"),
             "value" to "${currentDraw.amount * ticketValue * tax}",
         )))
         Vault.economy?.depositPlayer(winnerPlayer, currentDraw.amount * ticketValue * tax)
         Threads.runSync {
-            commandRewards.forEach {
+            extraRewards.forEach {
                 Bukkit.dispatchCommand(Bukkit.getServer().consoleSender, it.replace("%player%".toRegex(), winnerPlayer.name ?: "undefined"))
             }
         }
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as Lottery
+
+        if (enabled != other.enabled) return false
+        if (schedule != other.schedule) return false
+        if (displayName != other.displayName) return false
+        if (ticketValue != other.ticketValue) return false
+        if (maxTicketsPerPlayer != other.maxTicketsPerPlayer) return false
+        if (tax != other.tax) return false
+        if (!extraRewards.contentEquals(other.extraRewards)) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = enabled.hashCode()
+        result = 31 * result + schedule.hashCode()
+        result = 31 * result + displayName.hashCode()
+        result = 31 * result + ticketValue.hashCode()
+        result = 31 * result + maxTicketsPerPlayer.hashCode()
+        result = 31 * result + tax.hashCode()
+        result = 31 * result + extraRewards.contentHashCode()
+        return result
     }
 }

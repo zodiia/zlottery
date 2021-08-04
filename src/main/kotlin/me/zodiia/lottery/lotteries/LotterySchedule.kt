@@ -7,10 +7,14 @@ import java.util.HashSet
 import java.time.LocalTime
 import java.time.ZoneId
 
-class LotterySchedule(cfg: ConfigurationSection?) {
-    private val daysOfWeek: MutableSet<Int> = hashSetOf()
-    private val times: MutableSet<LocalTime> = hashSetOf()
-    private val reminders: MutableSet<Int> = hashSetOf()
+class LotterySchedule(
+    val time: String,
+    val day: String,
+    val reminders: String,
+) {
+    private val dayList: MutableSet<Int> = hashSetOf()
+    private val timeList: MutableSet<LocalTime> = hashSetOf()
+    private val remindersList: MutableSet<Int> = hashSetOf()
     private var next: LocalDateTime? = null
 
     fun getNextReminders(): Set<LocalDateTime> {
@@ -19,7 +23,7 @@ class LotterySchedule(cfg: ConfigurationSection?) {
             return nextReminders
         }
         for (reminder in reminders) {
-            nextReminders.add(next!!.minusMinutes(reminder.toLong()))
+            nextReminders.add(next!!.minusMinutes(reminder.code.toLong()))
         }
         return nextReminders
     }
@@ -35,7 +39,7 @@ class LotterySchedule(cfg: ConfigurationSection?) {
         var isAnotherDay = false
         var nextTime: LocalTime?
         next = LocalDateTime.now(ZoneId.systemDefault())
-        while (!daysOfWeek.contains(next?.dayOfWeek?.value?.rem(7) ?: -1)) {
+        while (!dayList.contains(next?.dayOfWeek?.value?.rem(7) ?: -1)) {
             next = next?.plusDays(1)
             isAnotherDay = true
         }
@@ -55,7 +59,7 @@ class LotterySchedule(cfg: ConfigurationSection?) {
         var firstTime: LocalTime? = null
         var smallestOffset: Long = -1
 
-        for (time in times) {
+        for (time in timeList) {
             if (time.isAfter(moment)) {
                 val offset = ChronoUnit.SECONDS.between(moment, time)
                 if (smallestOffset > offset || smallestOffset == -1L) {
@@ -68,19 +72,19 @@ class LotterySchedule(cfg: ConfigurationSection?) {
     }
 
     init {
-        val timesCfg = cfg!!.getString("time")!!.split(",").toTypedArray()
-        val daysCfg = cfg.getString("day")!!.split(",").toTypedArray()
-        val remindersCfg = cfg.getString("reminders")!!.split(",").toTypedArray()
-        for (time in timesCfg) {
+        val timeCfg = time.split(",").toTypedArray()
+        val dayCfg = day.split(",").toTypedArray()
+        val remindersCfg = reminders.split(",").toTypedArray()
+        for (time in timeCfg) {
             val parts = time.split("-").toTypedArray()
             val localTime = LocalTime.of(parts[0].toInt(), parts[1].toInt(), 0)
-            times.add(localTime)
+            timeList.add(localTime)
         }
-        for (day in daysCfg) {
-            daysOfWeek.add(day.toInt())
+        for (day in dayCfg) {
+            dayList.add(day.toInt())
         }
         for (reminder in remindersCfg) {
-            reminders.add(reminder.toInt())
+            remindersList.add(reminder.toInt())
         }
     }
 }

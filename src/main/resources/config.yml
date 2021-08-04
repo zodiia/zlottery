@@ -1,5 +1,4 @@
 # Database configuration
-# Only compatible with MySQL or MariaDB
 database:
   # Type of database
   # Available types are:
@@ -52,48 +51,3 @@ database:
 
   # Prefix of all tables created by the plugin
   table-prefix: lottery_
-# Lotteries configuration
-lotteries:
-  # Lottery identifier
-  day:
-    # Scheduling of this lottery
-    schedule:
-      # Time of the day, in the format HH-MM.
-      # Additional time schedules can be added separated by a comma.
-      time: 18-00,21-00
-
-      # Day of the week, from 0 (Sunday) to 6 (Saturday).
-      # Additional day schedules can be added separated by a comma.
-      day: 0,1,2,3,4,5,6
-
-      # Reminders before the draw, in minutes before the next draw.
-      # Additional reminder schedules can be added separated by a comma.
-      reminders: 1,5,15,60
-
-    # Display name (in messages) of this lottery
-    display-name: Journalière
-
-    # Value of a single ticket
-    ticket-value: 20
-
-    # Maximum amount of tickets for a single player
-    max-tickets-per-player: 20
-
-    # Lottery tax, in percent
-    tax: 5
-
-    # Extra rewards, in the form of commands
-    extra-rewards:
-      - "mail send %player% You won!"
-
-  week:
-    schedule:
-      time: 20-00
-      day: 0
-      reminders: 1,5,15,60,300,1440
-    display-name: Hebdomadaire
-    ticket-value: 50
-    max-tickets-per-player: 20
-    tax: 5
-    extra-rewards:
-      - "mail send %player% You won!"

@@ -1,22 +1,15 @@
 package me.zodiia.lottery
 
 import me.zodiia.api.command.Commands
-import me.zodiia.api.config.KotlinConfigRealm
-import me.zodiia.api.data.DataSourceProvider
+import me.zodiia.api.logger.Console
 import me.zodiia.api.plugins.KotlinPlugin
-import me.zodiia.lottery.commands.lotteryCommand
-import me.zodiia.lottery.commands.testCommand
+import me.zodiia.lottery.commands.lottery.lotteryCommand
 import me.zodiia.lottery.config.LotteryConfigRealm
 import me.zodiia.lottery.storage.LotteryDataSource
 import org.bukkit.plugin.Plugin
 import org.bukkit.plugin.PluginDescriptionFile
-import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.plugin.java.JavaPluginLoader
 import java.io.File
-import java.io.FileOutputStream
-import java.io.IOException
-import java.io.InputStream
-import java.io.OutputStream
 
 class LotteryPlugin : KotlinPlugin {
     override val configRealm = LotteryConfigRealm(this)
@@ -29,6 +22,7 @@ class LotteryPlugin : KotlinPlugin {
 
             file("config.yml")
             file("lang/fr.json")
+            file("lotteries/example.yml")
 
             spigotId(-1)
         }
@@ -42,15 +36,12 @@ class LotteryPlugin : KotlinPlugin {
     override fun onEnable() {
         super.onEnable()
 
-//        // Initialize the data source (avoid big lag at first request)
-//        LotteryDataSource.getSource()
+        Console.log("Initializing data source")
+        LotteryDataSource.getSource()
 
-        // Setup /lottery command
+        Console.log("Registering commands")
         Commands.register("lottery", this, lotteryCommand)
-        Commands.register("test", this, testCommand)
     }
-
-
 
     override fun onDisable() {
         super.onDisable()
@@ -58,6 +49,6 @@ class LotteryPlugin : KotlinPlugin {
     }
 
     companion object {
-        val plugin: Plugin by lazy { getPlugin(LotteryPlugin::class.java) }
+        val plugin: LotteryPlugin by lazy { getPlugin(LotteryPlugin::class.java) }
     }
 }
